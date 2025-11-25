@@ -53,9 +53,10 @@ input,textarea,select{
   border-radius:12px;
   border:1px solid #34384a;
   background:#0d0f18;
-  color:var(--txt);
+  color:#ffffff;
   padding:8px 10px;
   font-size:.9rem;
+  text-transform:uppercase;
 }
 textarea{resize:vertical;min-height:60px;}
 input[type="file"]{
@@ -63,6 +64,7 @@ input[type="file"]{
   font-size:.8rem;
   background:transparent;
   border:none;
+  text-transform:none;
 }
 .btn{
   width:100%;
@@ -111,11 +113,12 @@ input[type="file"]{
   border:1px solid #3b3f55;
   font-size:.7rem;
   color:var(--txt2);
+  text-transform:none;
 }
-.badge[data-g="Crítica"]{border-color:#ff5252;color:#ffbabd;}
-.badge[data-g="Alta"]{border-color:#ff9800;color:#ffd699;}
-.badge[data-g="Média"]{border-color:#ffc107;color:#ffe082;}
-.badge[data-g="Baixa"]{border-color:#4caf50;color:#b2ffb2;}
+.badge[data-g="CRÍTICA"]{border-color:#ff5252;color:#ffbabd;}
+.badge[data-g="ALTA"]{border-color:#ff9800;color:#ffd699;}
+.badge[data-g="MÉDIA"]{border-color:#ffc107;color:#ffe082;}
+.badge[data-g="BAIXA"]{border-color:#4caf50;color:#b2ffb2;}
 .hist-meta{
   font-size:.75rem;
   color:var(--txt2);
@@ -157,4 +160,46 @@ input[type="file"]{
   flex-direction:column;
   gap:6px;
   margin-top:8px;
+}
+.row-field{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.row-field input{
+  flex:1;
+}
+.btn-inline{
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid #34384a;
+  background:#10121e;
+  color:var(--txt2);
+  font-size:.75rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+/* Overlay QR */
+#qrOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.92);
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+#qrOverlay video{
+  width:80%;
+  max-width:420px;
+  border-radius:16px;
+  border:2px solid var(--accent);
+  box-shadow:0 0 20px rgba(0,230,118,0.4);
+  background:#000;
+}
+.qr-actions{
+  margin-top:12px;
+  width:80%;
+  max-width:420px;
 }
