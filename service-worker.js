@@ -1,9 +1,9 @@
-const CACHE_NAME = 'sigma-anomalias-calc-style-qr-v1';
+const CACHE_NAME = 'sigma-anomalias-pwa-blue-v2';
 const URLS_TO_CACHE = [
   './',
   './index.html',
-  './css/styles.css',
-  './js/app.js',
+  './styles.css',
+  './app.js',
   './manifest.json'
 ];
 
