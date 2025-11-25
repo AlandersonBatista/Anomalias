@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sigma Anomalias</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#050509"/>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Sigma Anomalias</h1>
+    <p>PWA estilo calculadora: registra, guarda no aparelho e gera PDF.</p>
+  </header>
+
+  <section class="card">
+    <h2>Nova Anomalia</h2>
+    <form id="formAnomalia">
+      <input type="hidden" id="editId" value="">
+
+      <label for="amostra">Amostra / Folio</label>
+      <input id="amostra" required placeholder="Ex: ZETESBIOC25-001">
+
+      <label for="elemento">Elemento / Ensaio</label>
+      <input id="elemento" placeholder="Ex: Mn, CN-WAD, pH">
+
+      <label for="lab">Laboratório</label>
+      <input id="lab" placeholder="Ex: Águas, ICP, FRX">
+
+      <label for="resp">Responsável</label>
+      <input id="resp" placeholder="Seu nome">
+
+      <label for="grav">Gravidade</label>
+      <select id="grav">
+        <option>Baixa</option>
+        <option>Média</option>
+        <option>Alta</option>
+        <option>Crítica</option>
+      </select>
+
+      <label for="status">Status</label>
+      <select id="status">
+        <option>Aberta</option>
+        <option>Em análise</option>
+        <option>Fechada</option>
+      </select>
+
+      <label for="data">Data e Hora</label>
+      <input type="datetime-local" id="data">
+
+      <label for="desc">Descrição</label>
+      <textarea id="desc" placeholder="Descreva o desvio, impacto, causa provável..."></textarea>
+
+      <label for="foto">Foto (1 imagem, opcional)</label>
+      <input type="file" id="foto" accept="image/*" capture="environment">
+
+      <button class="btn" type="submit" id="btnSalvar">Salvar anomalia</button>
+      <button class="btn-sec" type="button" id="btnLimparForm">Limpar formulário</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Histórico (armazenado no aparelho)</h2>
+
+    <div class="actions-top">
+      <button class="btn-sec" type="button" id="btnGerarPdf">Gerar PDF (1 por página)</button>
+      <button class="btn-sec" type="button" id="btnCompartilharPdf">Compartilhar PDF</button>
+      <button class="btn-sec danger" type="button" id="btnLimparHist">Limpar histórico</button>
+    </div>
+
+    <div id="lista"></div>
+  </section>
+
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html>
