@@ -12,67 +12,86 @@
 </head>
 <body>
   <header>
-    <h1>Sigma Anomalias</h1>
+    <h1>Sigma ANOMALIAS</h1>
     <p>PWA estilo calculadora: registra, guarda no aparelho e gera PDF.</p>
   </header>
 
   <section class="card">
-    <h2>Nova Anomalia</h2>
+    <h2>Nova ANOMALIA</h2>
     <form id="formAnomalia">
       <input type="hidden" id="editId" value="">
 
-      <label for="amostra">Amostra / Folio</label>
-      <input id="amostra" required placeholder="Ex: ZETESBIOC25-001">
+      <label for="amostra">FOLIO DA AMOSTRA</label>
+      <div class="row-field">
+        <input id="amostra" required placeholder="EX: ZETESBIOC25-001">
+        <button type="button" id="btnLerQr" class="btn-inline">LER QR</button>
+      </div>
 
-      <label for="elemento">Elemento / Ensaio</label>
-      <input id="elemento" placeholder="Ex: Mn, CN-WAD, pH">
+      <label for="elemento">ELEMENTO / ENSAIO</label>
+      <input id="elemento" placeholder="EX: MN, CN-WAD, PH">
 
-      <label for="lab">Laboratório</label>
-      <input id="lab" placeholder="Ex: Águas, ICP, FRX">
+      <label for="lab">LABORATÓRIO</label>
+      <select id="lab">
+        <option>ÁGUAS</option>
+        <option>CARBOQUÍMICO</option>
+        <option>ICP</option>
+        <option>MACRO ATAQUE</option>
+        <option>RAIO-X</option>
+        <option>REOLÓGICO</option>
+        <option>TECNOLÓGICO</option>
+      </select>
 
-      <label for="resp">Responsável</label>
-      <input id="resp" placeholder="Seu nome">
+      <label for="resp">RESPONSÁVEL</label>
+      <input id="resp" placeholder="SEU NOME">
 
-      <label for="grav">Gravidade</label>
+      <label for="grav">GRAVIDADE</label>
       <select id="grav">
-        <option>Baixa</option>
-        <option>Média</option>
-        <option>Alta</option>
-        <option>Crítica</option>
+        <option>BAIXA</option>
+        <option>MÉDIA</option>
+        <option>ALTA</option>
+        <option>CRÍTICA</option>
       </select>
 
-      <label for="status">Status</label>
+      <label for="status">STATUS</label>
       <select id="status">
-        <option>Aberta</option>
-        <option>Em análise</option>
-        <option>Fechada</option>
+        <option>ABERTA</option>
+        <option>EM ANÁLISE</option>
+        <option>FECHADA</option>
       </select>
 
-      <label for="data">Data e Hora</label>
+      <label for="data">DATA E HORA</label>
       <input type="datetime-local" id="data">
 
-      <label for="desc">Descrição</label>
-      <textarea id="desc" placeholder="Descreva o desvio, impacto, causa provável..."></textarea>
+      <label for="desc">DESCRIÇÃO</label>
+      <textarea id="desc" placeholder="DESCREVA O DESVIO, IMPACTO, CAUSA PROVÁVEL..."></textarea>
 
-      <label for="foto">Foto (1 imagem, opcional)</label>
+      <label for="foto">FOTO (1 IMAGEM, OPCIONAL)</label>
       <input type="file" id="foto" accept="image/*" capture="environment">
 
-      <button class="btn" type="submit" id="btnSalvar">Salvar anomalia</button>
-      <button class="btn-sec" type="button" id="btnLimparForm">Limpar formulário</button>
+      <button class="btn" type="submit" id="btnSalvar">SALVAR ANOMALIA</button>
+      <button class="btn-sec" type="button" id="btnLimparForm">LIMPAR FORMULÁRIO</button>
     </form>
   </section>
 
   <section class="card">
-    <h2>Histórico (armazenado no aparelho)</h2>
+    <h2>HISTÓRICO (ARMAZENADO NO APARELHO)</h2>
 
     <div class="actions-top">
-      <button class="btn-sec" type="button" id="btnGerarPdf">Gerar PDF (1 por página)</button>
-      <button class="btn-sec" type="button" id="btnCompartilharPdf">Compartilhar PDF</button>
-      <button class="btn-sec danger" type="button" id="btnLimparHist">Limpar histórico</button>
+      <button class="btn-sec" type="button" id="btnGerarPdf">GERAR PDF (1 POR PÁGINA)</button>
+      <button class="btn-sec" type="button" id="btnCompartilharPdf">COMPARTILHAR PDF</button>
+      <button class="btn-sec danger" type="button" id="btnLimparHist">LIMPAR HISTÓRICO</button>
     </div>
 
     <div id="lista"></div>
   </section>
+
+  <!-- Overlay leitor QR -->
+  <div id="qrOverlay">
+    <video id="qrVideo" autoplay playsinline></video>
+    <div class="qr-actions">
+      <button class="btn-sec danger" type="button" id="btnFecharQr">FECHAR</button>
+    </div>
+  </div>
 
   <!-- jsPDF CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

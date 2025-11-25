@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sigma-anomalias-calc-style-v1';
+const CACHE_NAME = 'sigma-anomalias-calc-style-qr-v1';
 const URLS_TO_CACHE = [
   './',
   './index.html',
