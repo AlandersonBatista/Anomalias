@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Anomalias - RAN</title>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --card:#1f2937; --muted:#94a3b8;
+      --text:#e5e7eb; --accent:#2563eb; --danger:#ef4444;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:linear-gradient(120deg,var(--bg),#020617);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
+      padding:16px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid #223046;
+      border-radius:14px;
+      padding:14px;
+      max-width:720px;
+      margin:auto;
+    }
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+    input,button,select,textarea{
+      font-family:inherit;
+    }
+    input,select,textarea{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #2a3a4f;
+      border-radius:10px;
+      background:#0f1b2a;
+      color:#e5e7eb;
+      font-size:15px;
+      text-transform:uppercase;
+      outline:none;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:#60a5fa;
+      box-shadow:0 0 0 1px #1d4ed8;
+    }
+    textarea{
+      min-height:80px;
+      resize:vertical;
+    }
+    .numeric{
+      text-transform:none;
+    }
+    .input-row{margin-bottom:14px}
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid #1d4ed8;
+      background:#2563eb;
+      color:#fff;
+      font-weight:600;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .input-with-btn{display:flex;gap:8px}
+    .input-with-btn input{flex:1}
+    .row-inline{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .row-inline .grow{
+      flex:1;
+    }
+    .row-inline .unit-select{
+      width:120px;
+    }
+    .camera-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.85);
+      display:none;align-items:center;justify-content:center;
+      z-index:50;padding:16px;
+    }
+    .camera-box{
+      background:#020617;border-radius:14px;border:1px solid #1e293b;
+      padding:12px;max-width:420px;width:100%;
+    }
+    video{width:100%;border-radius:10px;background:#000}
+    .camera-actions{display:flex;justify-content:flex-end;margin-top:8px}
+    .btn-secondary{
+      padding:8px 12px;border-radius:10px;border:1px solid #334155;
+      background:#020617;color:#e5e7eb;cursor:pointer;
+    }
+    .error{color:var(--danger);font-size:12px;margin-top:6px}
+    .hint{font-size:11px;color:var(--muted);margin-top:4px}
+    .thumbs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:8px;
+    }
+    .thumbs img{
+      width:72px;
+      height:72px;
+      object-fit:cover;
+      border-radius:8px;
+      border:1px solid #334155;
+      background:#020617;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- RAN AUTOMÁTICO -->
+    <div class="input-row">
+      <label>Nº RELATÓRIO DE ANOMALIA (RAN)</label>
+      <input id="idRAN" type="text" readonly placeholder="GERADO AUTOMATICAMENTE PELO SISTEMA">
+    </div>
+
+    <!-- TIPO DE ANOMALIA (COMBO) -->
+    <div class="input-row">
+      <label>TIPO DE ANOMALIA</label>
+      <select id="tipoAnomalia">
+        <option value="">SELECIONE...</option>
+        <option value="RESULTADO FORA DO HISTÓRICO">RESULTADO FORA DO HISTÓRICO</option>
+        <option value="AMOSTRA CONTAMINADA">AMOSTRA CONTAMINADA</option>
+        <option value="EQUIPAMENTO PARADO">EQUIPAMENTO PARADO</option>
+        <option value="FRASCO COM IDENTIFICAÇÃO TROCADA">FRASCO COM IDENTIFICAÇÃO TROCADA</option>
+      </select>
+    </div>
+
+    <!-- FÓLIO (POR PADRÃO VISÍVEL, EXCETO EM EQUIPAMENTO PARADO) -->
+    <div class="input-row" id="rowFolio">
+      <label>IDENTIFICAÇÃO DA AMOSTRA / FÓLIO</label>
+      <div class="input-with-btn">
+        <input id="folio" type="text" placeholder="EX.: ZETESFQ2-0010">
+        <button id="btnScan" class="btn" type="button">📷 LER QR</button>
+      </div>
+      <div class="error" id="folioErr"></div>
+    </div>
+
+    <!-- EQUIPAMENTO (APENAS QUANDO TIPO = EQUIPAMENTO PARADO) -->
+    <div class="input-row" id="rowEquip" style="display:none">
+      <label>EQUIPAMENTO QUEBRADO / DANIFICADO</label>
+      <input id="equipamento" type="text" placeholder="EX.: ICP 7300 DV, FRX ARL 9900, BOMBA, AGITADOR...">
+    </div>
+
+    <!-- LABORATÓRIO / ÁREA (ORDEM ALFABÉTICA, SEM LABORATÓRIO CENTRAL) -->
+    <div class="input-row" id="rowLab">
+      <label>LABORATÓRIO / ÁREA</label>
+      <select id="laboratorio">
+        <option value="">SELECIONE...</option>
+        <option value="ÁGUAS">ÁGUAS</option>
+        <option value="FRX">FRX</option>
+        <option value="ICP">ICP</option>
+        <option value="LUBRIFICANTES">LUBRIFICANTES</option>
+        <option value="OUTRO">OUTRO</option>
+        <option value="REOLÓGICO">REOLÓGICO</option>
+        <option value="VIA ÚMIDA">VIA ÚMIDA</option>
+      </select>
+    </div>
+
+    <!-- DESCRIÇÃO DA ANOMALIA -->
+    <div class="input-row">
+      <label>DESCRIÇÃO DA ANOMALIA</label>
+      <textarea id="descricaoAnomalia" placeholder="DESCREVA A OCORRÊNCIA, CONTEXTO, VALORES, IMPACTO..."></textarea>
+      <div class="hint">ESCREVA UM RELATO CLARO EM MAIÚSCULO.</div>
+    </div>
+
+    <!-- CAMPOS EXTRAS PARA RESULTADO FORA DO HISTÓRICO -->
+    <div class="input-row" id="rowResultados" style="display:none">
+      <div class="input-row">
+        <label>RESULTADO ENCONTRADO</label>
+        <div class="row-inline">
+          <input id="resultadoEncontrado" class="numeric grow" type="text" inputmode="decimal" placeholder="EX.: 0,89">
+          <select id="unidadeEncontrado" class="unit-select">
+            <option value="">SEM UNIDADE</option>
+            <option value="MG/L">MG/L</option>
+            <option value="PPM">PPM</option>
+            <option value="%">%</option>
+            <option value="NUT">NUT</option>
+            <option value="µS/CM">µS/CM</option>
+            <option value="MS/CM">MS/CM</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-row">
+        <label>RESULTADO DA REANÁLISE</label>
+        <div class="row-inline">
+          <input id="resultadoReanalise" class="numeric grow" type="text" inputmode="decimal" placeholder="EX.: 0,45">
+          <select id="unidadeReanalise" class="unit-select">
+            <option value="">SEM UNIDADE</option>
+            <option value="MG/L">MG/L</option>
+            <option value="PPM">PPM</option>
+            <option value="%">%</option>
+            <option value="NUT">NUT</option>
+            <option value="µS/CM">µS/CM</option>
+            <option value="MS/CM">MS/CM</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVIDÊNCIA (IMAGENS) -->
+    <div class="input-row" id="rowEvidencia" style="display:none">
+      <label>IMAGENS DE EVIDÊNCIA</label>
+      <input id="evidencia" type="file" accept="image/*" capture="environment" multiple>
+      <div class="hint">VOCÊ PODE TIRAR FOTOS E/OU SELECIONAR VÁRIAS IMAGENS RELACIONADAS A ESTA ANOMALIA.</div>
+      <div id="thumbsEvidencia" class="thumbs"></div>
+    </div>
+  </div>
+
+  <div id="cameraOverlay" class="camera-overlay">
+    <div class="camera-box">
+      <p style="color:#fff;font-size:14px">APONTE A CÂMERA PARA O QR CODE</p>
+      <video id="video" playsinline></video>
+      <div class="camera-actions">
+        <button id="btnCloseCam" class="btn-secondary">FECHAR</button>
+      </div>
+      <div id="camErr" class="error"></div>
+    </div>
+  </div>
+
+<script>
+const RAN_KEY='ran_seq';
+
+function gerarRAN(){
+  let seq=parseInt(localStorage.getItem(RAN_KEY)||'0',10);
+  if(isNaN(seq)) seq=0;
+  seq+=1;
+  localStorage.setItem(RAN_KEY,seq);
+  return `RAN - ${String(seq).padStart(4,'0')}`;
+}
+
+function initRAN(){
+  const ran=document.getElementById('idRAN');
+  if(!ran.value) ran.value=gerarRAN().toUpperCase();
+}
+
+let stream=null;
+let detector=null;
+let ativo=false;
+let imagensEvidenciaData = [];
+
+function isSecureForCamera(){
+  const proto=location.protocol;
+  const host=location.hostname;
+  if(proto==='https:') return true;
+  if(host==='localhost' || host==='127.0.0.1') return true;
+  return false;
+}
+
+async function abrirCamera(){
+  const overlay=document.getElementById('cameraOverlay');
+  const video=document.getElementById('video');
+  const err=document.getElementById('camErr');
+  err.textContent='';
+
+  if(!isSecureForCamera()){
+    err.textContent='PARA USAR A CÂMERA, ABRA ESTE ARQUIVO POR UM SERVIDOR (HTTP/HTTPS). DIRETO DO ARQUIVO (.HTML) O NAVEGADOR BLOQUEIA A CÂMERA.';
+    overlay.style.display='flex';
+    return;
+  }
+
+  if(!navigator.mediaDevices){
+    err.textContent='CÂMERA NÃO SUPORTADA NESTE NAVEGADOR.';
+    overlay.style.display='flex';
+    return;
+  }
+
+  if(!('BarcodeDetector'in window)){
+    err.textContent='LEITOR NATIVO DE QR CODE NÃO DISPONÍVEL. USE UM LEITOR FÍSICO (QUE AGE COMO TECLADO) OU DIGITE O FÓLIO.';
+    overlay.style.display='flex';
+    return;
+  }
+
+  detector=new BarcodeDetector({formats:['qr_code']});
+
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    video.srcObject=stream;
+    overlay.style.display='flex';
+    await video.play();
+    ativo=true;
+    lerFrame();
+  }catch(e){
+    console.error(e);
+    err.textContent='ERRO AO ABRIR CÂMERA. VERIFIQUE PERMISSÕES DO NAVEGADOR.';
+  }
+}
+
+function fecharCamera(){
+  ativo=false;
+  const overlay=document.getElementById('cameraOverlay');
+  overlay.style.display='none';
+  if(stream){stream.getTracks().forEach(t=>t.stop());}
+}
+
+async function lerFrame(){
+  if(!ativo) return;
+  const video=document.getElementById('video');
+  if(video.readyState===video.HAVE_ENOUGH_DATA){
+    const canvas=document.createElement('canvas');
+    canvas.width=video.videoWidth;
+    canvas.height=video.videoHeight;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    try{
+      const codes=await detector.detect(canvas);
+      if(codes.length>0){
+        document.getElementById('folio').value=(codes[0].rawValue||'').toUpperCase();
+        fecharCamera();
+        return;
+      }
+    }catch(e){
+      console.error(e);
+    }
+  }
+  requestAnimationFrame(lerFrame);
+}
+
+function atualizarVisibilidadePorTipo(){
+  const tipo = (document.getElementById('tipoAnomalia').value || '').toUpperCase();
+  const rowFolio = document.getElementById('rowFolio');
+  const rowEquip = document.getElementById('rowEquip');
+  const rowResultados = document.getElementById('rowResultados');
+  const rowEvidencia = document.getElementById('rowEvidencia');
+
+  if(tipo === 'EQUIPAMENTO PARADO'){
+    // Só equipamento + laboratório (sem fólio, sem resultados, sem imagens)
+    rowEquip.style.display = 'block';
+    rowFolio.style.display = 'none';
+    rowResultados.style.display = 'none';
+    rowEvidencia.style.display = 'none';
+  }else if(tipo === 'RESULTADO FORA DO HISTÓRICO'){
+    // Resultados + fólio + imagens + laboratório
+    rowEquip.style.display = 'none';
+    rowFolio.style.display = 'block';
+    rowResultados.style.display = 'block';
+    rowEvidencia.style.display = 'block';
+  }else if(tipo === 'AMOSTRA CONTAMINADA' || tipo === 'FRASCO COM IDENTIFICAÇÃO TROCADA'){
+    // Fólio + imagens + laboratório
+    rowEquip.style.display = 'none';
+    rowFolio.style.display = 'block';
+    rowResultados.style.display = 'none';
+    rowEvidencia.style.display = 'block';
+  }else{
+    // Padrão: só fólio + laboratório + descrição
+    rowEquip.style.display = 'none';
+    rowFolio.style.display = 'block';
+    rowResultados.style.display = 'none';
+    rowEvidencia.style.display = 'none';
+  }
+}
+
+function renderThumbnailsEvidencia(){
+  const container = document.getElementById('thumbsEvidencia');
+  if(!container) return;
+  container.innerHTML = '';
+  imagensEvidenciaData.forEach(src=>{
+    const img = document.createElement('img');
+    img.src = src;
+    container.appendChild(img);
+  });
+}
+
+function atualizarThumbnailsEvidencia(){
+  const input = document.getElementById('evidencia');
+  const files = input.files;
+  if(!files || !files.length) return;
+
+  Array.from(files).forEach(file=>{
+    if(!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      imagensEvidenciaData.push(e.target.result);
+      renderThumbnailsEvidencia();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function apenasNumero(el){
+  el.value = el.value.replace(/[^0-9.,-]/g,'');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  initRAN();
+
+  const folio=document.getElementById('folio');
+  folio.addEventListener('input',e=>{
+    e.target.value=e.target.value.toUpperCase();
+  });
+
+  const equipamento=document.getElementById('equipamento');
+  equipamento.addEventListener('input',e=>{
+    e.target.value=e.target.value.toUpperCase();
+  });
+
+  const resultadoEncontrado=document.getElementById('resultadoEncontrado');
+  resultadoEncontrado.addEventListener('input',e=>{
+    apenasNumero(e.target);
+  });
+
+  const resultadoReanalise=document.getElementById('resultadoReanalise');
+  resultadoReanalise.addEventListener('input',e=>{
+    apenasNumero(e.target);
+  });
+
+  const descricao=document.getElementById('descricaoAnomalia');
+  descricao.addEventListener('input',e=>{
+    e.target.value=e.target.value.toUpperCase();
+  });
+
+  const laboratorio=document.getElementById('laboratorio');
+  laboratorio.addEventListener('change',e=>{
+    e.target.value=(e.target.value||'').toUpperCase();
+  });
+
+  const tipoAnomalia=document.getElementById('tipoAnomalia');
+  tipoAnomalia.addEventListener('change',e=>{
+    e.target.value=(e.target.value||'').toUpperCase();
+    atualizarVisibilidadePorTipo();
+  });
+
+  const evidencia=document.getElementById('evidencia');
+  evidencia.addEventListener('change', atualizarThumbnailsEvidencia);
+
+  document.getElementById('btnScan').onclick=abrirCamera;
+  document.getElementById('btnCloseCam').onclick=fecharCamera;
+
+  atualizarVisibilidadePorTipo();
+});
+</script>
+</body>
+</html>
